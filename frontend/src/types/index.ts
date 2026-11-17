@@ -121,3 +121,4 @@ export interface ApplicationRecord {
   location?: string;
   updated_at: string;
 }
+

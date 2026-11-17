@@ -152,3 +152,4 @@ class AutonomousScheduler:
 
 # Global scheduler singleton
 autonomous_scheduler = AutonomousScheduler()
+

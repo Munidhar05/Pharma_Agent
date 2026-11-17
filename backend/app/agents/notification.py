@@ -205,3 +205,4 @@ class NotificationAgent:
             f"Notes: {notes or 'Please complete before the deadline.'}"
         )
         return self.dispatch(user_id=user_id, title=title, message=msg, notification_type="Assessment")
+

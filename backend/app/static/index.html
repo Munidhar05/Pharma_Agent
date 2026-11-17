@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,28 +14,34 @@
   <!-- Chart.js CDN for analytics -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    [v-cloak] { display: none; }
+    [v-cloak] {
+      display: none;
+    }
+
     .score-circle {
       background: conic-gradient(#10b981 var(--score-deg), #e2e8f0 0deg);
     }
   </style>
 </head>
+
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen">
   <div id="app" v-cloak class="flex flex-col min-h-screen">
-    
+
     <!-- Top Navigation Bar -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <!-- Logo & Brand -->
           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md">
+            <div
+              class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md">
               <i class="fa-solid fa-dna text-xl"></i>
             </div>
             <div>
               <div class="flex items-center space-x-2">
                 <span class="font-bold text-lg text-slate-900 tracking-tight">Pharma Job Hunter AI</span>
-                <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-semibold">India Edition</span>
+                <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-semibold">India
+                  Edition</span>
               </div>
               <p class="text-xs text-slate-500">Autonomous Pharma, Biotech & Clinical Data Application Platform</p>
             </div>
@@ -42,18 +49,21 @@
 
           <!-- System Status & Candidate Profile Pill -->
           <div class="flex items-center space-x-4">
-            <div class="hidden md:flex items-center px-3 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-600 space-x-2">
+            <div
+              class="hidden md:flex items-center px-3 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-600 space-x-2">
               <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               <span>Mode: <strong>Assisted with Approval</strong></span>
             </div>
 
             <!-- Candidate Profile Badge -->
             <div class="flex items-center space-x-3 border-l pl-4 border-slate-200">
-              <div class="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-sm">
+              <div
+                class="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-sm">
                 {{ candidate.user?.full_name ? candidate.user.full_name.charAt(0) : 'R' }}
               </div>
               <div class="text-left hidden sm:block">
-                <p class="text-sm font-semibold text-slate-800 leading-tight">{{ candidate.user?.full_name || 'Rajesh Sharma' }}</p>
+                <p class="text-sm font-semibold text-slate-800 leading-tight">{{ candidate.user?.full_name || 'Rajesh
+                  Sharma' }}</p>
                 <p class="text-xs text-slate-500">{{ candidate.headline || 'Associate Data Engineer' }}</p>
               </div>
             </div>
@@ -64,25 +74,32 @@
       <!-- Navigation Tabs -->
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-100">
         <nav class="flex space-x-6">
-          <button @click="currentTab = 'dashboard'" :class="tabClass('dashboard')" class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-all">
+          <button @click="currentTab = 'dashboard'" :class="tabClass('dashboard')"
+            class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-all">
             <i class="fa-solid fa-chart-pie"></i>
             <span>Dashboard</span>
           </button>
-          <button @click="currentTab = 'jobs'" :class="tabClass('jobs')" class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-all">
+          <button @click="currentTab = 'jobs'" :class="tabClass('jobs')"
+            class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-all">
             <i class="fa-solid fa-briefcase"></i>
             <span>Job Opportunities</span>
             <span class="ml-1 text-xs px-2 py-0.2 bg-slate-200 text-slate-700 rounded-full">{{ jobs.length }}</span>
           </button>
-          <button @click="currentTab = 'profile'" :class="tabClass('profile')" class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-all">
+          <button @click="currentTab = 'profile'" :class="tabClass('profile')"
+            class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-all">
             <i class="fa-solid fa-id-card"></i>
             <span>Candidate Profile & ATS Resume</span>
           </button>
-          <button @click="currentTab = 'applications'" :class="tabClass('applications')" class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-all">
+          <button @click="currentTab = 'applications'" :class="tabClass('applications')"
+            class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-all">
             <i class="fa-solid fa-paper-plane"></i>
             <span>Applications & Tracking</span>
-            <span v-if="stats.awaiting_approval > 0" class="ml-1 text-xs px-2 py-0.2 bg-amber-500 text-white rounded-full font-bold animate-pulse">{{ stats.awaiting_approval }}</span>
+            <span v-if="stats.awaiting_approval > 0"
+              class="ml-1 text-xs px-2 py-0.2 bg-amber-500 text-white rounded-full font-bold animate-pulse">{{
+              stats.awaiting_approval }}</span>
           </button>
-          <button @click="currentTab = 'agents'" :class="tabClass('agents')" class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-all">
+          <button @click="currentTab = 'agents'" :class="tabClass('agents')"
+            class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-all">
             <i class="fa-solid fa-robot"></i>
             <span>Autonomous Agents</span>
           </button>
@@ -96,23 +113,29 @@
       <!-- ================= TAB 1: OVERVIEW DASHBOARD ================= -->
       <section v-if="currentTab === 'dashboard'" class="space-y-6">
         <!-- Hero Banner with Quick Actions -->
-        <div class="bg-gradient-to-r from-emerald-800 to-teal-700 rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div
+          class="bg-gradient-to-r from-emerald-800 to-teal-700 rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <div class="flex items-center space-x-2 mb-1">
-              <span class="px-2 py-0.5 bg-emerald-500/30 border border-emerald-400/40 rounded text-xs font-semibold uppercase tracking-wider">Autonomous Agent Active</span>
+              <span
+                class="px-2 py-0.5 bg-emerald-500/30 border border-emerald-400/40 rounded text-xs font-semibold uppercase tracking-wider">Autonomous
+                Agent Active</span>
               <span class="text-xs text-emerald-200">Refreshes every 6 hours</span>
             </div>
             <h1 class="text-2xl font-bold">Autonomous Pharma & Life Sciences Job Hunter</h1>
             <p class="text-emerald-100 text-sm mt-1 max-w-2xl">
-              Actively monitoring 54 Indian & Global pharma companies across Hyderabad, Bengaluru, Pune, Mumbai and remote India for data-driven engineering and analytics roles.
+              Actively monitoring 54 Indian & Global pharma companies across Hyderabad, Bengaluru, Pune, Mumbai and
+              remote India for data-driven engineering and analytics roles.
             </p>
           </div>
           <div class="flex flex-wrap gap-2">
-            <button @click="runJobDiscovery" :disabled="loading.discovery" class="px-4 py-2 bg-white text-emerald-800 hover:bg-emerald-50 rounded-lg text-sm font-semibold shadow transition-all flex items-center space-x-2">
+            <button @click="runJobDiscovery" :disabled="loading.discovery"
+              class="px-4 py-2 bg-white text-emerald-800 hover:bg-emerald-50 rounded-lg text-sm font-semibold shadow transition-all flex items-center space-x-2">
               <i class="fa-solid fa-magnifying-glass" :class="{'fa-spin': loading.discovery}"></i>
               <span>{{ loading.discovery ? 'Searching...' : 'Search Jobs Now' }}</span>
             </button>
-            <button @click="recalculateMatches" :disabled="loading.matching" class="px-4 py-2 bg-emerald-600/80 hover:bg-emerald-600 text-white rounded-lg text-sm font-semibold border border-emerald-400/30 transition-all flex items-center space-x-2">
+            <button @click="recalculateMatches" :disabled="loading.matching"
+              class="px-4 py-2 bg-emerald-600/80 hover:bg-emerald-600 text-white rounded-lg text-sm font-semibold border border-emerald-400/30 transition-all flex items-center space-x-2">
               <i class="fa-solid fa-bullseye" :class="{'fa-spin': loading.matching}"></i>
               <span>{{ loading.matching ? 'Scoring...' : 'Recalculate Matches' }}</span>
             </button>
@@ -222,14 +245,18 @@
           <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
             <div>
               <h3 class="font-bold text-slate-800">Top Recommended Matches</h3>
-              <p class="text-xs text-slate-500">Evaluated against candidate verified profile with hard eligibility guards</p>
+              <p class="text-xs text-slate-500">Evaluated against candidate verified profile with hard eligibility
+                guards</p>
             </div>
-            <button @click="currentTab = 'jobs'" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700">View All ({{ jobs.length }}) &rarr;</button>
+            <button @click="currentTab = 'jobs'"
+              class="text-xs font-semibold text-emerald-600 hover:text-emerald-700">View All ({{ jobs.length }})
+              &rarr;</button>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider font-semibold">
+                <tr
+                  class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider font-semibold">
                   <th class="py-3 px-6">Match</th>
                   <th class="py-3 px-6">Job Title & Company</th>
                   <th class="py-3 px-6">Category & City</th>
@@ -242,7 +269,8 @@
                 <tr v-for="job in topMatches" :key="job.id" class="hover:bg-slate-50/80 transition-all">
                   <td class="py-4 px-6">
                     <div class="flex items-center space-x-2">
-                      <span :class="scoreBadgeClass(job.match_score)" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-sm">
+                      <span :class="scoreBadgeClass(job.match_score)"
+                        class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-sm">
                         {{ Math.round(job.match_score || 0) }}%
                       </span>
                     </div>
@@ -252,7 +280,9 @@
                     <p class="text-xs text-emerald-700 font-medium mt-0.5">{{ job.company_name }}</p>
                   </td>
                   <td class="py-4 px-6">
-                    <span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700 mr-1">{{ job.category }}</span>
+                    <span
+                      class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700 mr-1">{{
+                      job.category }}</span>
                     <span class="text-xs text-slate-500">{{ job.city || job.location }}</span>
                   </td>
                   <td class="py-4 px-6 text-xs text-slate-600">
@@ -264,10 +294,12 @@
                     </span>
                   </td>
                   <td class="py-4 px-6 text-right space-x-2">
-                    <button @click="openPrepareModal(job)" class="px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded text-xs font-semibold shadow-sm transition-all">
+                    <button @click="openPrepareModal(job)"
+                      class="px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded text-xs font-semibold shadow-sm transition-all">
                       Apply (Assisted)
                     </button>
-                    <button @click="generateResume(job.id)" class="px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded text-xs font-semibold transition-all">
+                    <button @click="generateResume(job.id)"
+                      class="px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded text-xs font-semibold transition-all">
                       ATS Resume
                     </button>
                   </td>
@@ -285,10 +317,13 @@
           <div class="flex flex-col md:flex-row gap-3">
             <div class="flex-1 relative">
               <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-slate-400"></i>
-              <input v-model="filters.search" type="text" placeholder="Search by job title, skill (Python, PySpark, Snowflake), or company..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <input v-model="filters.search" type="text"
+                placeholder="Search by job title, skill (Python, PySpark, Snowflake), or company..."
+                class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
             </div>
             <div class="w-full md:w-56">
-              <select v-model="filters.category" class="w-full py-2 px-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <select v-model="filters.category"
+                class="w-full py-2 px-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                 <option value="">All Categories (7 Pillars)</option>
                 <option value="Data Engineering">Data Engineering</option>
                 <option value="Data Analytics">Data Analytics</option>
@@ -300,7 +335,8 @@
               </select>
             </div>
             <div class="w-full md:w-48">
-              <select v-model="filters.city" class="w-full py-2 px-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <select v-model="filters.city"
+                class="w-full py-2 px-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
                 <option value="">All Indian Locations</option>
                 <option value="Hyderabad">Hyderabad</option>
                 <option value="Bengaluru">Bengaluru</option>
@@ -317,16 +353,19 @@
 
         <!-- Job Cards Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div v-for="job in filteredJobs" :key="job.id" class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+          <div v-for="job in filteredJobs" :key="job.id"
+            class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
             <div>
               <!-- Top Row: Company & Match Badge -->
               <div class="flex justify-between items-start mb-2">
                 <div>
-                  <span class="text-xs font-semibold text-emerald-700 uppercase tracking-wider">{{ job.company_name }}</span>
+                  <span class="text-xs font-semibold text-emerald-700 uppercase tracking-wider">{{ job.company_name
+                    }}</span>
                   <h4 class="font-bold text-slate-900 text-base leading-tight mt-0.5">{{ job.title }}</h4>
                 </div>
                 <div v-if="job.match_score !== undefined" class="text-right">
-                  <span :class="scoreBadgeClass(job.match_score)" class="text-xs font-bold px-2 py-0.5 rounded-full text-white inline-block">
+                  <span :class="scoreBadgeClass(job.match_score)"
+                    class="text-xs font-bold px-2 py-0.5 rounded-full text-white inline-block">
                     {{ Math.round(job.match_score) }}% Match
                   </span>
                 </div>
@@ -354,15 +393,18 @@
 
             <!-- Card Footer: Actions -->
             <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-              <a :href="job.official_application_url" target="_blank" class="text-xs font-medium text-slate-500 hover:text-slate-800 flex items-center">
+              <a :href="job.official_application_url" target="_blank"
+                class="text-xs font-medium text-slate-500 hover:text-slate-800 flex items-center">
                 <span>View Job</span>
                 <i class="fa-solid fa-arrow-up-right-from-square ml-1 text-slate-400 text-xs"></i>
               </a>
               <div class="flex space-x-1.5">
-                <button @click="generateResume(job.id)" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-semibold transition-all">
+                <button @click="generateResume(job.id)"
+                  class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-semibold transition-all">
                   ATS Resume
                 </button>
-                <button @click="openPrepareModal(job)" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold shadow-sm transition-all">
+                <button @click="openPrepareModal(job)"
+                  class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold shadow-sm transition-all">
                   Apply (Assisted)
                 </button>
               </div>
@@ -378,7 +420,8 @@
           <div class="lg:col-span-1 space-y-6">
             <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
               <div class="flex items-center space-x-3 mb-4">
-                <div class="w-14 h-14 rounded-full bg-emerald-600 text-white font-bold text-xl flex items-center justify-center">
+                <div
+                  class="w-14 h-14 rounded-full bg-emerald-600 text-white font-bold text-xl flex items-center justify-center">
                   {{ candidate.user?.full_name ? candidate.user.full_name.charAt(0) : 'R' }}
                 </div>
                 <div>
@@ -390,20 +433,28 @@
               <div class="space-y-2 text-xs text-slate-600 border-t border-slate-100 pt-3">
                 <p><i class="fa-solid fa-envelope w-5 text-slate-400"></i> {{ candidate.user?.email }}</p>
                 <p><i class="fa-solid fa-phone w-5 text-slate-400"></i> {{ candidate.phone || '+91-9876543210' }}</p>
-                <p><i class="fa-solid fa-location-dot w-5 text-slate-400"></i> {{ candidate.current_location }} (Willing to relocate)</p>
-                <p><i class="fa-brands fa-linkedin w-5 text-slate-400"></i> <a :href="candidate.linkedin_url" target="_blank" class="text-emerald-600 hover:underline">LinkedIn Profile</a></p>
-                <p><i class="fa-brands fa-github w-5 text-slate-400"></i> <a :href="candidate.github_url" target="_blank" class="text-emerald-600 hover:underline">GitHub Portfolio</a></p>
-                <p><i class="fa-solid fa-business-time w-5 text-slate-400"></i> Total Experience: <strong>{{ candidate.total_experience_years || 0 }} years (Fresher/Junior)</strong></p>
-                <p><i class="fa-solid fa-clock w-5 text-slate-400"></i> Notice Period: <strong>{{ candidate.notice_period_days === 0 ? 'Immediate (0 Days)' : candidate.notice_period_days + ' Days' }}</strong></p>
+                <p><i class="fa-solid fa-location-dot w-5 text-slate-400"></i> {{ candidate.current_location }} (Willing
+                  to relocate)</p>
+                <p><i class="fa-brands fa-linkedin w-5 text-slate-400"></i> <a :href="candidate.linkedin_url"
+                    target="_blank" class="text-emerald-600 hover:underline">LinkedIn Profile</a></p>
+                <p><i class="fa-brands fa-github w-5 text-slate-400"></i> <a :href="candidate.github_url"
+                    target="_blank" class="text-emerald-600 hover:underline">GitHub Portfolio</a></p>
+                <p><i class="fa-solid fa-business-time w-5 text-slate-400"></i> Total Experience: <strong>{{
+                    candidate.total_experience_years || 0 }} years (Fresher/Junior)</strong></p>
+                <p><i class="fa-solid fa-clock w-5 text-slate-400"></i> Notice Period: <strong>{{
+                    candidate.notice_period_days === 0 ? 'Immediate (0 Days)' : candidate.notice_period_days + ' Days'
+                    }}</strong></p>
               </div>
 
               <!-- Resume Upload Box -->
-              <div class="mt-6 border-2 border-dashed border-slate-200 rounded-xl p-4 text-center hover:border-emerald-500 transition-all">
+              <div
+                class="mt-6 border-2 border-dashed border-slate-200 rounded-xl p-4 text-center hover:border-emerald-500 transition-all">
                 <i class="fa-solid fa-cloud-arrow-up text-2xl text-slate-400 mb-2"></i>
                 <p class="text-xs font-semibold text-slate-700">Upload Resume (PDF / DOCX)</p>
                 <p class="text-xs text-slate-400 mt-1">Automatic parsing & skill extraction</p>
                 <input type="file" @change="handleFileUpload" class="hidden" id="resumeUploadInput" accept=".pdf,.docx">
-                <label for="resumeUploadInput" class="mt-3 inline-block px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-semibold cursor-pointer">
+                <label for="resumeUploadInput"
+                  class="mt-3 inline-block px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-semibold cursor-pointer">
                   Browse File
                 </label>
               </div>
@@ -417,12 +468,15 @@
               <div class="flex justify-between items-center mb-4">
                 <div>
                   <h3 class="font-bold text-slate-800">Verified Technical Skills</h3>
-                  <p class="text-xs text-slate-500">Only verified skills are used for matching & ATS keyword inclusion</p>
+                  <p class="text-xs text-slate-500">Only verified skills are used for matching & ATS keyword inclusion
+                  </p>
                 </div>
-                <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-semibold">{{ candidate.skills?.length || 0 }} Skills</span>
+                <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-semibold">{{
+                  candidate.skills?.length || 0 }} Skills</span>
               </div>
               <div class="flex flex-wrap gap-2">
-                <span v-for="skill in candidate.skills" :key="skill.id" class="px-3 py-1 bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 flex items-center space-x-1">
+                <span v-for="skill in candidate.skills" :key="skill.id"
+                  class="px-3 py-1 bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 flex items-center space-x-1">
                   <span>{{ skill.name }}</span>
                   <span class="text-slate-400 text-xs">({{ skill.years_experience }}y)</span>
                 </span>
@@ -434,7 +488,8 @@
               <div class="flex justify-between items-center mb-4">
                 <div>
                   <h3 class="font-bold text-slate-800">Generated ATS-Tailored Resumes</h3>
-                  <p class="text-xs text-slate-500">Single-column, keyword-aligned, parseable by Workday, Taleo, Greenhouse</p>
+                  <p class="text-xs text-slate-500">Single-column, keyword-aligned, parseable by Workday, Taleo,
+                    Greenhouse</p>
                 </div>
               </div>
 
@@ -445,20 +500,26 @@
               </div>
 
               <div v-else class="space-y-3">
-                <div v-for="res in generatedResumes" :key="res.id" class="p-4 rounded-lg border border-slate-200 hover:border-emerald-300 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                <div v-for="res in generatedResumes" :key="res.id"
+                  class="p-4 rounded-lg border border-slate-200 hover:border-emerald-300 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                   <div>
                     <h5 class="font-semibold text-sm text-slate-900">{{ res.title }}</h5>
                     <div class="flex items-center space-x-2 text-xs text-slate-500 mt-1">
-                      <span class="text-emerald-700 font-semibold">Keyword Score: {{ Math.round(res.keyword_coverage_score) }}%</span>
+                      <span class="text-emerald-700 font-semibold">Keyword Score: {{
+                        Math.round(res.keyword_coverage_score) }}%</span>
                       <span>&bull;</span>
                       <span>Created: {{ formatDate(res.generated_at) }}</span>
                     </div>
                   </div>
                   <div class="flex space-x-2">
-                    <a v-if="res.file_path_pdf" :href="'/api/v1/resumes/' + res.id + '/download?format=pdf'" target="_blank" class="px-3 py-1.5 bg-red-50 text-red-700 hover:bg-red-100 rounded text-xs font-semibold flex items-center">
+                    <a v-if="res.file_path_pdf" :href="'/api/v1/resumes/' + res.id + '/download?format=pdf'"
+                      target="_blank"
+                      class="px-3 py-1.5 bg-red-50 text-red-700 hover:bg-red-100 rounded text-xs font-semibold flex items-center">
                       <i class="fa-solid fa-file-pdf mr-1"></i> Download PDF
                     </a>
-                    <a v-if="res.file_path_docx" :href="'/api/v1/resumes/' + res.id + '/download?format=docx'" target="_blank" class="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-xs font-semibold flex items-center">
+                    <a v-if="res.file_path_docx" :href="'/api/v1/resumes/' + res.id + '/download?format=docx'"
+                      target="_blank"
+                      class="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-xs font-semibold flex items-center">
                       <i class="fa-solid fa-file-word mr-1"></i> Download DOCX
                     </a>
                   </div>
@@ -504,7 +565,8 @@
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider font-semibold">
+                <tr
+                  class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider font-semibold">
                   <th class="py-3 px-6">Company & Position</th>
                   <th class="py-3 px-6">Mode</th>
                   <th class="py-3 px-6">Status</th>
@@ -516,7 +578,8 @@
               <tbody class="divide-y divide-slate-100 text-sm">
                 <tr v-if="applications.length === 0">
                   <td colspan="6" class="py-8 text-center text-slate-400">
-                    No active applications yet. Select an opportunity from the Job Opportunities tab to begin assisted application.
+                    No active applications yet. Select an opportunity from the Job Opportunities tab to begin assisted
+                    application.
                   </td>
                 </tr>
                 <tr v-for="app in applications" :key="app.id" class="hover:bg-slate-50/80 transition-all">
@@ -528,7 +591,8 @@
                     {{ app.mode }}
                   </td>
                   <td class="py-4 px-6">
-                    <span :class="appStatusBadgeClass(app.status)" class="text-xs px-2.5 py-1 rounded-full font-semibold">
+                    <span :class="appStatusBadgeClass(app.status)"
+                      class="text-xs px-2.5 py-1 rounded-full font-semibold">
                       {{ app.status }}
                     </span>
                   </td>
@@ -544,13 +608,17 @@
                     {{ app.submission_ref_id || 'Pending submission' }}
                   </td>
                   <td class="py-4 px-6 text-right space-x-2">
-                    <button @click="openApplicationPreview(app.id)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-semibold transition-all">
+                    <button @click="openApplicationPreview(app.id)"
+                      class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-semibold transition-all">
                       Review / Preview
                     </button>
-                    <button v-if="!app.candidate_approved" @click="quickApprove(app.id)" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold shadow-sm transition-all">
+                    <button v-if="!app.candidate_approved" @click="quickApprove(app.id)"
+                      class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold shadow-sm transition-all">
                       Approve
                     </button>
-                    <button v-if="app.candidate_approved && app.status === 'Awaiting approval'" @click="executeSubmit(app.id)" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold shadow-sm transition-all">
+                    <button v-if="app.candidate_approved && app.status === 'Awaiting approval'"
+                      @click="executeSubmit(app.id)"
+                      class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold shadow-sm transition-all">
                       Submit Now
                     </button>
                   </td>
@@ -565,13 +633,16 @@
       <section v-if="currentTab === 'agents'" class="space-y-6">
         <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
           <h3 class="text-base font-bold text-slate-800 mb-2">Multi-Agent Architecture Topology</h3>
-          <p class="text-xs text-slate-500 mb-6">11 Autonomous Specialized Agents working together to discover, parse, score, tailor, and track pharmaceutical data applications across India.</p>
+          <p class="text-xs text-slate-500 mb-6">11 Autonomous Specialized Agents working together to discover, parse,
+            score, tailor, and track pharmaceutical data applications across India.</p>
 
           <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            <div v-for="agent in agentRoster" :key="agent.id" class="p-4 rounded-xl border border-slate-200 bg-slate-50 flex flex-col justify-between">
+            <div v-for="agent in agentRoster" :key="agent.id"
+              class="p-4 rounded-xl border border-slate-200 bg-slate-50 flex flex-col justify-between">
               <div>
                 <div class="flex items-center space-x-2 mb-2">
-                  <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs font-bold">
+                  <div
+                    class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs font-bold">
                     A{{ agent.id }}
                   </div>
                   <h4 class="font-bold text-slate-900 text-sm">{{ agent.name }}</h4>
@@ -590,13 +661,16 @@
       </section>
 
       <!-- ================= MODAL: APPLICATION PREVIEW & APPROVAL GATE ================= -->
-      <div v-if="activePreview" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200">
+      <div v-if="activePreview"
+        class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div
+          class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200">
           <!-- Modal Header -->
           <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
             <div>
               <div class="flex items-center space-x-2">
-                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Assisted Application Gate</span>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Assisted
+                  Application Gate</span>
                 <span class="text-xs text-slate-400">Strict Candidate Approval Required</span>
               </div>
               <h3 class="text-lg font-bold text-slate-900 mt-1">{{ activePreview.job_title }}</h3>
@@ -610,10 +684,12 @@
           <!-- Modal Body (Scrollable) -->
           <div class="px-6 py-4 overflow-y-auto space-y-6 flex-1 text-sm">
             <!-- Blockers Alert if any -->
-            <div v-if="!activePreview.candidate_approved" class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs flex items-start space-x-2">
+            <div v-if="!activePreview.candidate_approved"
+              class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs flex items-start space-x-2">
               <i class="fa-solid fa-triangle-exclamation text-amber-600 mt-0.5"></i>
               <div>
-                <strong>Candidate Verification Required:</strong> Please review mapped form fields and truthful screening question responses below. Once approved, you can submit this application.
+                <strong>Candidate Verification Required:</strong> Please review mapped form fields and truthful
+                screening question responses below. Once approved, you can submit this application.
               </div>
             </div>
 
@@ -624,7 +700,8 @@
                 Mapped Application Fields Snapshot
               </h4>
               <div class="grid grid-cols-2 gap-3 text-xs">
-                <div v-for="field in activePreview.mapped_fields" :key="field.field_name" class="p-2.5 bg-slate-50 rounded border border-slate-200">
+                <div v-for="field in activePreview.mapped_fields" :key="field.field_name"
+                  class="p-2.5 bg-slate-50 rounded border border-slate-200">
                   <span class="text-slate-500 font-medium">{{ field.field_label }}:</span>
                   <p class="font-semibold text-slate-900 mt-0.5 truncate">{{ field.field_value || 'N/A' }}</p>
                 </div>
@@ -638,9 +715,11 @@
                 Truthful Screening Question Responses
               </h4>
               <div class="space-y-3">
-                <div v-for="sq in activePreview.screening_questions" :key="sq.question" class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                <div v-for="sq in activePreview.screening_questions" :key="sq.question"
+                  class="p-3 bg-slate-50 rounded-lg border border-slate-200">
                   <p class="font-semibold text-slate-900 text-xs">{{ sq.question }}</p>
-                  <p class="text-emerald-700 font-medium text-xs mt-1 bg-emerald-50/80 p-2 rounded border border-emerald-100">
+                  <p
+                    class="text-emerald-700 font-medium text-xs mt-1 bg-emerald-50/80 p-2 rounded border border-emerald-100">
                     {{ sq.answer }}
                   </p>
                   <p class="text-slate-400 text-[11px] mt-1 italic">{{ sq.explanation }}</p>
@@ -660,13 +739,16 @@
               </span>
             </div>
             <div class="space-x-2">
-              <button @click="activePreview = null" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-all">
+              <button @click="activePreview = null"
+                class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-all">
                 Close
               </button>
-              <button v-if="!activePreview.candidate_approved" @click="approveModalApplication" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow transition-all">
+              <button v-if="!activePreview.candidate_approved" @click="approveModalApplication"
+                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow transition-all">
                 <i class="fa-solid fa-check mr-1"></i> Approve Application
               </button>
-              <button v-if="activePreview.candidate_approved" @click="submitModalApplication" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow transition-all">
+              <button v-if="activePreview.candidate_approved" @click="submitModalApplication"
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow transition-all">
                 <i class="fa-solid fa-paper-plane mr-1"></i> Execute Submission
               </button>
             </div>
@@ -679,7 +761,8 @@
     <!-- Footer -->
     <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
       <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
-        Pharma Job Hunter AI &bull; Built with FastAPI, SQLite/PostgreSQL, ReportLab ATS Resume Builder & Multi-Agent Architecture.
+        Pharma Job Hunter AI &bull; Built with FastAPI, SQLite/PostgreSQL, ReportLab ATS Resume Builder & Multi-Agent
+        Architecture.
       </div>
     </footer>
 
@@ -1041,4 +1124,5 @@
     }).mount('#app');
   </script>
 </body>
+
 </html>

@@ -121,3 +121,4 @@ def trigger_scheduled_task(task_name: str):
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Execution error: {str(e)}")
+

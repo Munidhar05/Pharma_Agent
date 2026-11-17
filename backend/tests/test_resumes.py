@@ -222,3 +222,4 @@ def test_resume_generation_agent_and_api(test_db):
     # 7. List All Resumes
     all_resumes = list_all_generated_resumes(db=test_db, profile=candidate)
     assert len(all_resumes) >= 1
+

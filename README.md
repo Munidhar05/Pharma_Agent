@@ -255,3 +255,4 @@ backend/tests/test_resume_generation_agent_and_api PASSED [100%]
 2. **Assisted Application Priority:** Automated submission is strictly halted until the candidate reviews the mapped snapshot and provides explicit consent.
 3. **Respect for Career Portals:** Adheres to `robots.txt`, respects portal rate limits, and uses official APIs and RSS feeds wherever available.
 4. **No CAPTCHA / Anti-Bot Bypassing:** When a portal requires MFA or visual CAPTCHA, the agent prepares the pre-filled package and hands over directly to the user.
+

@@ -213,3 +213,4 @@ def get_application_events(
         .all()
     )
     return [ApplicationEventResponse.model_validate(e) for e in events]
+

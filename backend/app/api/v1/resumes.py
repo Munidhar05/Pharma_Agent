@@ -200,3 +200,4 @@ def list_all_generated_resumes(
     ).order_by(GeneratedResume.generated_at.desc()).all()
 
     return [_to_resume_response(r) for r in resumes]
+

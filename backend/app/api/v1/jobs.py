@@ -208,6 +208,7 @@ def update_job(job_id: int, payload: DiscoveredJobUpdate, db: Session = Depends(
 
 
 @router.post("/search", response_model=JobSearchResult)
+@router.post("/discover", response_model=JobSearchResult)
 def trigger_job_search(
     query: JobSearchQuery = JobSearchQuery(),
     db: Session = Depends(get_db)

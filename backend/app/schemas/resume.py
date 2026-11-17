@@ -53,3 +53,4 @@ class GeneratedResumeResponse(BaseModel):
     docx_download_url: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
+

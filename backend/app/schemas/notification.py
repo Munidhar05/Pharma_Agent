@@ -25,3 +25,4 @@ class NotificationResponse(NotificationBase):
 
 class NotificationBatchReadRequest(BaseModel):
     notification_ids: Optional[List[int]] = None
+

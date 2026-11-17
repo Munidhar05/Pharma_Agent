@@ -295,3 +295,4 @@ class ResumeBuilderService:
 
         doc.save(output_path)
         return output_path
+

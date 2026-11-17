@@ -168,3 +168,4 @@ def test_scheduler_status_and_lifecycle():
     # Test API status endpoint
     api_status = get_scheduler_status()
     assert "tasks" in api_status
+

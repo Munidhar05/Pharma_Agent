@@ -135,6 +135,7 @@ def evaluate_job_match(
 
 
 @router.post("/evaluate-all", response_model=BatchMatchResponse)
+@router.post("/evaluate-batch", response_model=BatchMatchResponse)
 def evaluate_all_jobs(
     payload: BatchMatchRequest = BatchMatchRequest(),
     db: Session = Depends(get_db),
@@ -164,6 +165,7 @@ def evaluate_all_jobs(
 
 
 @router.get("/top-recommendations", response_model=List[JobMatchResultResponse])
+@router.get("/recommendations", response_model=List[JobMatchResultResponse])
 def get_top_recommendations(
     db: Session = Depends(get_db),
     profile: CandidateProfile = Depends(get_current_candidate_profile),

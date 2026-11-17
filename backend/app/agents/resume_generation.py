@@ -157,3 +157,4 @@ class ResumeGenerationAgent:
         self.db.commit()
 
         return resume_record
+
