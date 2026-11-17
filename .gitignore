@@ -1,0 +1,36 @@
+# Python & Virtual Environments
+.venv/
+venv/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local Database & Secrets
+*.db
+*.sqlite3
+.env
+!.env.example
+
+# File Uploads & Generated Outputs
+uploads/*
+!uploads/.gitkeep
+generated_resumes/*
+!generated_resumes/.gitkeep
+
+# Node & Frontend Build
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pharma Job Hunter AI - Autonomous Job Discovery & Application Agent</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome / Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Vue 3 CDN for reactive state management without build step -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <!-- Chart.js CDN for analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    [v-cloak] { display: none; }
+    .score-circle {
+      background: conic-gradient(#10b981 var(--score-deg), #e2e8f0 0deg);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen">
+  <div id="app" v-cloak class="flex flex-col min-h-screen">
+    
+    <!-- Top Navigation Bar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <!-- Logo & Brand -->
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md">
+              <i class="fa-solid fa-dna text-xl"></i>
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="font-bold text-lg text-slate-900 tracking-tight">Pharma Job Hunter AI</span>
+                <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-semibold">India Edition</span>
+              </div>
+              <p class="text-xs text-slate-500">Autonomous Pharma, Biotech & Clinical Data Application Platform</p>
+            </div>
+          </div>
+
+          <!-- System Status & Candidate Profile Pill -->
+          <div class="flex items-center space-x-4">
+            <div class="hidden md:flex items-center px-3 py-1 bg-slate-100 rounded-full text-xs font-medium text-slate-600 space-x-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Mode: <strong>Assisted with Approval</strong></span>
+            </div>
+
+            <!-- Candidate Profile Badge -->
+            <div class="flex items-center space-x-3 border-l pl-4 border-slate-200">
+              <div class="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-sm">
+                {{ candidate.user?.full_name ? candidate.user.full_name.charAt(0) : 'R' }}
+              </div>
+              <div class="text-left hidden sm:block">
+                <p class="text-sm font-semibold text-slate-800 leading-tight">{{ candidate.user?.full_name || 'Rajesh Sharma' }}</p>
+                <p class="text-xs text-slate-500">{{ candidate.headline || 'Associate Data Engineer' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-100">
+        <nav class="flex space-x-6">
+          <button @click="currentTab = 'dashboard'" :class="tabClass('dashboard')" class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-all">
+            <i class="fa-solid fa-chart-pie"></i>
+            <span>Dashboard</span>
+          </button>
+          <button @click="currentTab = 'jobs'" :class="tabClass('jobs')" class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-all">
+            <i class="fa-solid fa-briefcase"></i>
+            <span>Job Opportunities</span>
+            <span class="ml-1 text-xs px-2 py-0.2 bg-slate-200 text-slate-700 rounded-full">{{ jobs.length }}</span>
+          </button>
+          <button @click="currentTab = 'profile'" :class="tabClass('profile')" class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-all">
+            <i class="fa-solid fa-id-card"></i>
+            <span>Candidate Profile & ATS Resume</span>
+          </button>
+          <button @click="currentTab = 'applications'" :class="tabClass('applications')" class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-all">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>Applications & Tracking</span>
+            <span v-if="stats.awaiting_approval > 0" class="ml-1 text-xs px-2 py-0.2 bg-amber-500 text-white rounded-full font-bold animate-pulse">{{ stats.awaiting_approval }}</span>
+          </button>
+          <button @click="currentTab = 'agents'" :class="tabClass('agents')" class="py-3 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 transition-all">
+            <i class="fa-solid fa-robot"></i>
+            <span>Autonomous Agents</span>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+      <!-- ================= TAB 1: OVERVIEW DASHBOARD ================= -->
+      <section v-if="currentTab === 'dashboard'" class="space-y-6">
+        <!-- Hero Banner with Quick Actions -->
+        <div class="bg-gradient-to-r from-emerald-800 to-teal-700 rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <div class="flex items-center space-x-2 mb-1">
+              <span class="px-2 py-0.5 bg-emerald-500/30 border border-emerald-400/40 rounded text-xs font-semibold uppercase tracking-wider">Autonomous Agent Active</span>
+              <span class="text-xs text-emerald-200">Refreshes every 6 hours</span>
+            </div>
+            <h1 class="text-2xl font-bold">Autonomous Pharma & Life Sciences Job Hunter</h1>
+            <p class="text-emerald-100 text-sm mt-1 max-w-2xl">
+              Actively monitoring 54 Indian & Global pharma companies across Hyderabad, Bengaluru, Pune, Mumbai and remote India for data-driven engineering and analytics roles.
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button @click="runJobDiscovery" :disabled="loading.discovery" class="px-4 py-2 bg-white text-emerald-800 hover:bg-emerald-50 rounded-lg text-sm font-semibold shadow transition-all flex items-center space-x-2">
+              <i class="fa-solid fa-magnifying-glass" :class="{'fa-spin': loading.discovery}"></i>
+              <span>{{ loading.discovery ? 'Searching...' : 'Search Jobs Now' }}</span>
+            </button>
+            <button @click="recalculateMatches" :disabled="loading.matching" class="px-4 py-2 bg-emerald-600/80 hover:bg-emerald-600 text-white rounded-lg text-sm font-semibold border border-emerald-400/30 transition-all flex items-center space-x-2">
+              <i class="fa-solid fa-bullseye" :class="{'fa-spin': loading.matching}"></i>
+              <span>{{ loading.matching ? 'Scoring...' : 'Recalculate Matches' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Metric Stat Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Discovered</p>
+                <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ jobs.length }}</h3>
+              </div>
+              <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                <i class="fa-solid fa-building-circle-check text-lg"></i>
+              </div>
+            </div>
+            <p class="text-xs text-slate-500 mt-3 flex items-center">
+              <span class="text-emerald-600 font-semibold mr-1">54 Companies</span> seeded
+            </p>
+          </div>
+
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Active & Verified</p>
+                <h3 class="text-2xl font-bold text-emerald-600 mt-1">{{ activeJobsCount }}</h3>
+              </div>
+              <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <i class="fa-solid fa-shield-check text-lg"></i>
+              </div>
+            </div>
+            <p class="text-xs text-slate-500 mt-3 flex items-center">
+              <span class="text-emerald-600 font-semibold mr-1">100%</span> verified links
+            </p>
+          </div>
+
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">High Match (≥70%)</p>
+                <h3 class="text-2xl font-bold text-teal-600 mt-1">{{ strongMatchesCount }}</h3>
+              </div>
+              <div class="w-10 h-10 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
+                <i class="fa-solid fa-star text-lg"></i>
+              </div>
+            </div>
+            <p class="text-xs text-slate-500 mt-3 flex items-center">
+              <span class="text-teal-600 font-semibold mr-1">6-Factor AI</span> scored
+            </p>
+          </div>
+
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Awaiting Approval</p>
+                <h3 class="text-2xl font-bold text-amber-600 mt-1">{{ stats.awaiting_approval }}</h3>
+              </div>
+              <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+              </div>
+            </div>
+            <p class="text-xs text-slate-500 mt-3 flex items-center">
+              <span class="text-amber-600 font-semibold mr-1">{{ stats.submitted }}</span> submitted
+            </p>
+          </div>
+        </div>
+
+        <!-- 5-Industry Sector Coverage Breakdown -->
+        <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center">
+            <i class="fa-solid fa-network-wired text-emerald-600 mr-2"></i>
+            Indian Life Sciences Sector Coverage
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+            <div class="p-3 rounded-lg bg-slate-50 border border-slate-100">
+              <p class="text-xs font-semibold text-slate-600">A. Indian Pharma</p>
+              <p class="text-lg font-bold text-slate-800 mt-1">16 Companies</p>
+              <p class="text-xs text-slate-500 mt-1">Dr. Reddy's, Aurobindo, Sun, Cipla, Lupin, Zydus, Biocon...</p>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-50 border border-slate-100">
+              <p class="text-xs font-semibold text-slate-600">B. Global Pharma in India</p>
+              <p class="text-lg font-bold text-slate-800 mt-1">15 Companies</p>
+              <p class="text-xs text-slate-500 mt-1">Pfizer, Roche, Novartis, Sanofi, AstraZeneca, GSK, Lilly...</p>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-50 border border-slate-100">
+              <p class="text-xs font-semibold text-slate-600">C. CRO & Clinical Research</p>
+              <p class="text-lg font-bold text-slate-800 mt-1">8 Companies</p>
+              <p class="text-xs text-slate-500 mt-1">IQVIA, Parexel, ICON, Syneos Health, Labcorp, Fortrea...</p>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-50 border border-slate-100">
+              <p class="text-xs font-semibold text-slate-600">D. Biotech & Life Sciences</p>
+              <p class="text-lg font-bold text-slate-800 mt-1">7 Companies</p>
+              <p class="text-xs text-slate-500 mt-1">Biocon Biologics, Serum Institute, Bharat Biotech, Syngene...</p>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-50 border border-slate-100">
+              <p class="text-xs font-semibold text-slate-600">E. Pharma Tech & Software</p>
+              <p class="text-lg font-bold text-slate-800 mt-1">8 Companies</p>
+              <p class="text-xs text-slate-500 mt-1">AmpleLogic, Veeva, Indegene, Accenture Life Sciences, TCS...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Recommended Matches Table -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+            <div>
+              <h3 class="font-bold text-slate-800">Top Recommended Matches</h3>
+              <p class="text-xs text-slate-500">Evaluated against candidate verified profile with hard eligibility guards</p>
+            </div>
+            <button @click="currentTab = 'jobs'" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700">View All ({{ jobs.length }}) &rarr;</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider font-semibold">
+                  <th class="py-3 px-6">Match</th>
+                  <th class="py-3 px-6">Job Title & Company</th>
+                  <th class="py-3 px-6">Category & City</th>
+                  <th class="py-3 px-6">Experience Required</th>
+                  <th class="py-3 px-6">Status</th>
+                  <th class="py-3 px-6 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-sm">
+                <tr v-for="job in topMatches" :key="job.id" class="hover:bg-slate-50/80 transition-all">
+                  <td class="py-4 px-6">
+                    <div class="flex items-center space-x-2">
+                      <span :class="scoreBadgeClass(job.match_score)" class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-sm">
+                        {{ Math.round(job.match_score || 0) }}%
+                      </span>
+                    </div>
+                  </td>
+                  <td class="py-4 px-6">
+                    <p class="font-bold text-slate-900 leading-tight">{{ job.title }}</p>
+                    <p class="text-xs text-emerald-700 font-medium mt-0.5">{{ job.company_name }}</p>
+                  </td>
+                  <td class="py-4 px-6">
+                    <span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700 mr-1">{{ job.category }}</span>
+                    <span class="text-xs text-slate-500">{{ job.city || job.location }}</span>
+                  </td>
+                  <td class="py-4 px-6 text-xs text-slate-600">
+                    {{ formatExp(job.min_experience, job.max_experience) }}
+                  </td>
+                  <td class="py-4 px-6">
+                    <span :class="statusBadgeClass(job.status)" class="text-xs px-2 py-0.5 rounded-full font-semibold">
+                      {{ job.status }}
+                    </span>
+                  </td>
+                  <td class="py-4 px-6 text-right space-x-2">
+                    <button @click="openPrepareModal(job)" class="px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded text-xs font-semibold shadow-sm transition-all">
+                      Apply (Assisted)
+                    </button>
+                    <button @click="generateResume(job.id)" class="px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded text-xs font-semibold transition-all">
+                      ATS Resume
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 2: JOBS EXPLORER ================= -->
+      <section v-if="currentTab === 'jobs'" class="space-y-6">
+        <!-- Search & Filter Controls -->
+        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm space-y-4">
+          <div class="flex flex-col md:flex-row gap-3">
+            <div class="flex-1 relative">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-slate-400"></i>
+              <input v-model="filters.search" type="text" placeholder="Search by job title, skill (Python, PySpark, Snowflake), or company..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+            </div>
+            <div class="w-full md:w-56">
+              <select v-model="filters.category" class="w-full py-2 px-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                <option value="">All Categories (7 Pillars)</option>
+                <option value="Data Engineering">Data Engineering</option>
+                <option value="Data Analytics">Data Analytics</option>
+                <option value="AI and Machine Learning">AI and Machine Learning</option>
+                <option value="Database and SQL">Database and SQL</option>
+                <option value="Clinical and Pharmaceutical Data">Clinical and Pharmaceutical Data</option>
+                <option value="Pharma IT and Data Quality">Pharma IT and Data Quality</option>
+                <option value="Other Technical">Other Technical</option>
+              </select>
+            </div>
+            <div class="w-full md:w-48">
+              <select v-model="filters.city" class="w-full py-2 px-3 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                <option value="">All Indian Locations</option>
+                <option value="Hyderabad">Hyderabad</option>
+                <option value="Bengaluru">Bengaluru</option>
+                <option value="Pune">Pune</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Chennai">Chennai</option>
+                <option value="Ahmedabad">Ahmedabad</option>
+                <option value="Noida">Noida / NCR</option>
+                <option value="Remote">Remote India</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Job Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div v-for="job in filteredJobs" :key="job.id" class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+            <div>
+              <!-- Top Row: Company & Match Badge -->
+              <div class="flex justify-between items-start mb-2">
+                <div>
+                  <span class="text-xs font-semibold text-emerald-700 uppercase tracking-wider">{{ job.company_name }}</span>
+                  <h4 class="font-bold text-slate-900 text-base leading-tight mt-0.5">{{ job.title }}</h4>
+                </div>
+                <div v-if="job.match_score !== undefined" class="text-right">
+                  <span :class="scoreBadgeClass(job.match_score)" class="text-xs font-bold px-2 py-0.5 rounded-full text-white inline-block">
+                    {{ Math.round(job.match_score) }}% Match
+                  </span>
+                </div>
+              </div>
+
+              <!-- Location & Work Mode Badges -->
+              <div class="flex flex-wrap gap-1.5 my-3">
+                <span class="text-xs px-2 py-0.5 bg-slate-100 text-slate-700 rounded flex items-center">
+                  <i class="fa-solid fa-location-dot text-slate-400 mr-1"></i>
+                  {{ job.city || job.location }}
+                </span>
+                <span class="text-xs px-2 py-0.5 bg-slate-100 text-slate-700 rounded">
+                  {{ job.work_mode || 'Hybrid' }}
+                </span>
+                <span class="text-xs px-2 py-0.5 bg-slate-100 text-slate-700 rounded">
+                  {{ formatExp(job.min_experience, job.max_experience) }}
+                </span>
+              </div>
+
+              <!-- Description Snippet -->
+              <p class="text-xs text-slate-600 line-clamp-3 mb-4 leading-relaxed">
+                {{ job.description }}
+              </p>
+            </div>
+
+            <!-- Card Footer: Actions -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+              <a :href="job.official_application_url" target="_blank" class="text-xs font-medium text-slate-500 hover:text-slate-800 flex items-center">
+                <span>View Job</span>
+                <i class="fa-solid fa-arrow-up-right-from-square ml-1 text-slate-400 text-xs"></i>
+              </a>
+              <div class="flex space-x-1.5">
+                <button @click="generateResume(job.id)" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-semibold transition-all">
+                  ATS Resume
+                </button>
+                <button @click="openPrepareModal(job)" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold shadow-sm transition-all">
+                  Apply (Assisted)
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 3: CANDIDATE PROFILE & ATS RESUME ================= -->
+      <section v-if="currentTab === 'profile'" class="space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Profile Left Column -->
+          <div class="lg:col-span-1 space-y-6">
+            <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+              <div class="flex items-center space-x-3 mb-4">
+                <div class="w-14 h-14 rounded-full bg-emerald-600 text-white font-bold text-xl flex items-center justify-center">
+                  {{ candidate.user?.full_name ? candidate.user.full_name.charAt(0) : 'R' }}
+                </div>
+                <div>
+                  <h3 class="font-bold text-lg text-slate-900">{{ candidate.user?.full_name || 'Rajesh Sharma' }}</h3>
+                  <p class="text-xs text-slate-500">{{ candidate.headline }}</p>
+                </div>
+              </div>
+
+              <div class="space-y-2 text-xs text-slate-600 border-t border-slate-100 pt-3">
+                <p><i class="fa-solid fa-envelope w-5 text-slate-400"></i> {{ candidate.user?.email }}</p>
+                <p><i class="fa-solid fa-phone w-5 text-slate-400"></i> {{ candidate.phone || '+91-9876543210' }}</p>
+                <p><i class="fa-solid fa-location-dot w-5 text-slate-400"></i> {{ candidate.current_location }} (Willing to relocate)</p>
+                <p><i class="fa-brands fa-linkedin w-5 text-slate-400"></i> <a :href="candidate.linkedin_url" target="_blank" class="text-emerald-600 hover:underline">LinkedIn Profile</a></p>
+                <p><i class="fa-brands fa-github w-5 text-slate-400"></i> <a :href="candidate.github_url" target="_blank" class="text-emerald-600 hover:underline">GitHub Portfolio</a></p>
+                <p><i class="fa-solid fa-business-time w-5 text-slate-400"></i> Total Experience: <strong>{{ candidate.total_experience_years || 0 }} years (Fresher/Junior)</strong></p>
+                <p><i class="fa-solid fa-clock w-5 text-slate-400"></i> Notice Period: <strong>{{ candidate.notice_period_days === 0 ? 'Immediate (0 Days)' : candidate.notice_period_days + ' Days' }}</strong></p>
+              </div>
+
+              <!-- Resume Upload Box -->
+              <div class="mt-6 border-2 border-dashed border-slate-200 rounded-xl p-4 text-center hover:border-emerald-500 transition-all">
+                <i class="fa-solid fa-cloud-arrow-up text-2xl text-slate-400 mb-2"></i>
+                <p class="text-xs font-semibold text-slate-700">Upload Resume (PDF / DOCX)</p>
+                <p class="text-xs text-slate-400 mt-1">Automatic parsing & skill extraction</p>
+                <input type="file" @change="handleFileUpload" class="hidden" id="resumeUploadInput" accept=".pdf,.docx">
+                <label for="resumeUploadInput" class="mt-3 inline-block px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-semibold cursor-pointer">
+                  Browse File
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Profile Right Column: Skills, Education & Generated Resumes -->
+          <div class="lg:col-span-2 space-y-6">
+            <!-- Verified Technical Skills -->
+            <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+              <div class="flex justify-between items-center mb-4">
+                <div>
+                  <h3 class="font-bold text-slate-800">Verified Technical Skills</h3>
+                  <p class="text-xs text-slate-500">Only verified skills are used for matching & ATS keyword inclusion</p>
+                </div>
+                <span class="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded font-semibold">{{ candidate.skills?.length || 0 }} Skills</span>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <span v-for="skill in candidate.skills" :key="skill.id" class="px-3 py-1 bg-slate-100 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 flex items-center space-x-1">
+                  <span>{{ skill.name }}</span>
+                  <span class="text-slate-400 text-xs">({{ skill.years_experience }}y)</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Generated Tailored Resumes List -->
+            <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+              <div class="flex justify-between items-center mb-4">
+                <div>
+                  <h3 class="font-bold text-slate-800">Generated ATS-Tailored Resumes</h3>
+                  <p class="text-xs text-slate-500">Single-column, keyword-aligned, parseable by Workday, Taleo, Greenhouse</p>
+                </div>
+              </div>
+
+              <div v-if="generatedResumes.length === 0" class="text-center py-8 text-slate-400 text-sm">
+                <i class="fa-solid fa-file-invoice text-3xl mb-2 text-slate-300"></i>
+                <p>No tailored resumes generated yet.</p>
+                <p class="text-xs">Click "ATS Resume" on any job card to generate an ATS-optimized PDF and DOCX.</p>
+              </div>
+
+              <div v-else class="space-y-3">
+                <div v-for="res in generatedResumes" :key="res.id" class="p-4 rounded-lg border border-slate-200 hover:border-emerald-300 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                  <div>
+                    <h5 class="font-semibold text-sm text-slate-900">{{ res.title }}</h5>
+                    <div class="flex items-center space-x-2 text-xs text-slate-500 mt-1">
+                      <span class="text-emerald-700 font-semibold">Keyword Score: {{ Math.round(res.keyword_coverage_score) }}%</span>
+                      <span>&bull;</span>
+                      <span>Created: {{ formatDate(res.generated_at) }}</span>
+                    </div>
+                  </div>
+                  <div class="flex space-x-2">
+                    <a v-if="res.file_path_pdf" :href="'/api/v1/resumes/' + res.id + '/download?format=pdf'" target="_blank" class="px-3 py-1.5 bg-red-50 text-red-700 hover:bg-red-100 rounded text-xs font-semibold flex items-center">
+                      <i class="fa-solid fa-file-pdf mr-1"></i> Download PDF
+                    </a>
+                    <a v-if="res.file_path_docx" :href="'/api/v1/resumes/' + res.id + '/download?format=docx'" target="_blank" class="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-xs font-semibold flex items-center">
+                      <i class="fa-solid fa-file-word mr-1"></i> Download DOCX
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 4: APPLICATIONS & TRACKING ================= -->
+      <section v-if="currentTab === 'applications'" class="space-y-6">
+        <!-- Applications Statistics Bar -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-xs text-slate-500 uppercase font-semibold">Total Applications</p>
+            <h4 class="text-xl font-bold text-slate-800 mt-1">{{ stats.total_applications }}</h4>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-xs text-amber-600 uppercase font-semibold">Awaiting Approval</p>
+            <h4 class="text-xl font-bold text-amber-600 mt-1">{{ stats.awaiting_approval }}</h4>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-xs text-blue-600 uppercase font-semibold">Submitted & Confirmed</p>
+            <h4 class="text-xl font-bold text-blue-600 mt-1">{{ stats.submitted + stats.confirmed }}</h4>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-xs text-teal-600 uppercase font-semibold">Interviews Scheduled</p>
+            <h4 class="text-xl font-bold text-teal-600 mt-1">{{ stats.interviews }}</h4>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+            <p class="text-xs text-purple-600 uppercase font-semibold">Assessments Pending</p>
+            <h4 class="text-xl font-bold text-purple-600 mt-1">{{ stats.assessments }}</h4>
+          </div>
+        </div>
+
+        <!-- Applications Table -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+            <h3 class="font-bold text-slate-800">Job Application Tracking Pipeline</h3>
+            <span class="text-xs text-slate-500">12-Stage Application Lifecycle</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider font-semibold">
+                  <th class="py-3 px-6">Company & Position</th>
+                  <th class="py-3 px-6">Mode</th>
+                  <th class="py-3 px-6">Status</th>
+                  <th class="py-3 px-6">Candidate Consent</th>
+                  <th class="py-3 px-6">Reference ID</th>
+                  <th class="py-3 px-6 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-sm">
+                <tr v-if="applications.length === 0">
+                  <td colspan="6" class="py-8 text-center text-slate-400">
+                    No active applications yet. Select an opportunity from the Job Opportunities tab to begin assisted application.
+                  </td>
+                </tr>
+                <tr v-for="app in applications" :key="app.id" class="hover:bg-slate-50/80 transition-all">
+                  <td class="py-4 px-6">
+                    <p class="font-bold text-slate-900 leading-tight">{{ app.job_title || 'Data Position' }}</p>
+                    <p class="text-xs text-emerald-700 font-medium">{{ app.company_name }} &bull; {{ app.location }}</p>
+                  </td>
+                  <td class="py-4 px-6 text-xs text-slate-600">
+                    {{ app.mode }}
+                  </td>
+                  <td class="py-4 px-6">
+                    <span :class="appStatusBadgeClass(app.status)" class="text-xs px-2.5 py-1 rounded-full font-semibold">
+                      {{ app.status }}
+                    </span>
+                  </td>
+                  <td class="py-4 px-6 text-xs">
+                    <span v-if="app.candidate_approved" class="text-emerald-600 font-semibold flex items-center">
+                      <i class="fa-solid fa-circle-check mr-1"></i> Approved
+                    </span>
+                    <span v-else class="text-amber-600 font-semibold flex items-center">
+                      <i class="fa-solid fa-clock mr-1"></i> Pending Review
+                    </span>
+                  </td>
+                  <td class="py-4 px-6 text-xs font-mono text-slate-600">
+                    {{ app.submission_ref_id || 'Pending submission' }}
+                  </td>
+                  <td class="py-4 px-6 text-right space-x-2">
+                    <button @click="openApplicationPreview(app.id)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-semibold transition-all">
+                      Review / Preview
+                    </button>
+                    <button v-if="!app.candidate_approved" @click="quickApprove(app.id)" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-semibold shadow-sm transition-all">
+                      Approve
+                    </button>
+                    <button v-if="app.candidate_approved && app.status === 'Awaiting approval'" @click="executeSubmit(app.id)" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-semibold shadow-sm transition-all">
+                      Submit Now
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB 5: AUTONOMOUS AGENTS CONSOLE ================= -->
+      <section v-if="currentTab === 'agents'" class="space-y-6">
+        <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <h3 class="text-base font-bold text-slate-800 mb-2">Multi-Agent Architecture Topology</h3>
+          <p class="text-xs text-slate-500 mb-6">11 Autonomous Specialized Agents working together to discover, parse, score, tailor, and track pharmaceutical data applications across India.</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div v-for="agent in agentRoster" :key="agent.id" class="p-4 rounded-xl border border-slate-200 bg-slate-50 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center space-x-2 mb-2">
+                  <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs font-bold">
+                    A{{ agent.id }}
+                  </div>
+                  <h4 class="font-bold text-slate-900 text-sm">{{ agent.name }}</h4>
+                </div>
+                <p class="text-xs text-slate-600 leading-relaxed">{{ agent.desc }}</p>
+              </div>
+              <div class="mt-4 pt-2 border-t border-slate-200 flex justify-between items-center text-xs">
+                <span class="text-emerald-700 font-semibold flex items-center">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span> Ready
+                </span>
+                <span class="text-slate-400">{{ agent.trigger }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= MODAL: APPLICATION PREVIEW & APPROVAL GATE ================= -->
+      <div v-if="activePreview" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200">
+          <!-- Modal Header -->
+          <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Assisted Application Gate</span>
+                <span class="text-xs text-slate-400">Strict Candidate Approval Required</span>
+              </div>
+              <h3 class="text-lg font-bold text-slate-900 mt-1">{{ activePreview.job_title }}</h3>
+              <p class="text-xs text-emerald-700 font-medium">{{ activePreview.company_name }}</p>
+            </div>
+            <button @click="activePreview = null" class="text-slate-400 hover:text-slate-600 text-lg">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <!-- Modal Body (Scrollable) -->
+          <div class="px-6 py-4 overflow-y-auto space-y-6 flex-1 text-sm">
+            <!-- Blockers Alert if any -->
+            <div v-if="!activePreview.candidate_approved" class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs flex items-start space-x-2">
+              <i class="fa-solid fa-triangle-exclamation text-amber-600 mt-0.5"></i>
+              <div>
+                <strong>Candidate Verification Required:</strong> Please review mapped form fields and truthful screening question responses below. Once approved, you can submit this application.
+              </div>
+            </div>
+
+            <!-- Mapped Standard Fields -->
+            <div>
+              <h4 class="font-bold text-slate-800 mb-3 flex items-center text-sm">
+                <i class="fa-solid fa-rectangle-list text-emerald-600 mr-2"></i>
+                Mapped Application Fields Snapshot
+              </h4>
+              <div class="grid grid-cols-2 gap-3 text-xs">
+                <div v-for="field in activePreview.mapped_fields" :key="field.field_name" class="p-2.5 bg-slate-50 rounded border border-slate-200">
+                  <span class="text-slate-500 font-medium">{{ field.field_label }}:</span>
+                  <p class="font-semibold text-slate-900 mt-0.5 truncate">{{ field.field_value || 'N/A' }}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Truthful Screening Question Answers -->
+            <div>
+              <h4 class="font-bold text-slate-800 mb-3 flex items-center text-sm">
+                <i class="fa-solid fa-circle-question text-teal-600 mr-2"></i>
+                Truthful Screening Question Responses
+              </h4>
+              <div class="space-y-3">
+                <div v-for="sq in activePreview.screening_questions" :key="sq.question" class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                  <p class="font-semibold text-slate-900 text-xs">{{ sq.question }}</p>
+                  <p class="text-emerald-700 font-medium text-xs mt-1 bg-emerald-50/80 p-2 rounded border border-emerald-100">
+                    {{ sq.answer }}
+                  </p>
+                  <p class="text-slate-400 text-[11px] mt-1 italic">{{ sq.explanation }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="px-6 py-4 border-t border-slate-200 flex justify-between items-center bg-slate-50 rounded-b-2xl">
+            <div class="text-xs">
+              <span v-if="activePreview.candidate_approved" class="text-emerald-600 font-semibold flex items-center">
+                <i class="fa-solid fa-circle-check mr-1"></i> Approved by Candidate
+              </span>
+              <span v-else class="text-slate-500">
+                Awaiting your explicit consent
+              </span>
+            </div>
+            <div class="space-x-2">
+              <button @click="activePreview = null" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-all">
+                Close
+              </button>
+              <button v-if="!activePreview.candidate_approved" @click="approveModalApplication" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow transition-all">
+                <i class="fa-solid fa-check mr-1"></i> Approve Application
+              </button>
+              <button v-if="activePreview.candidate_approved" @click="submitModalApplication" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow transition-all">
+                <i class="fa-solid fa-paper-plane mr-1"></i> Execute Submission
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
+      <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
+        Pharma Job Hunter AI &bull; Built with FastAPI, SQLite/PostgreSQL, ReportLab ATS Resume Builder & Multi-Agent Architecture.
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Vue 3 Application Script -->
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+
+    createApp({
+      setup() {
+        const currentTab = ref('dashboard');
+        const jobs = ref([]);
+        const candidate = ref({});
+        const stats = ref({
+          total_applications: 0,
+          awaiting_approval: 0,
+          submitted: 0,
+          confirmed: 0,
+          interviews: 0,
+          assessments: 0,
+          offers: 0,
+          rejections: 0
+        });
+        const applications = ref([]);
+        const generatedResumes = ref([]);
+        const activePreview = ref(null);
+
+        const filters = ref({
+          search: '',
+          category: '',
+          city: ''
+        });
+
+        const loading = ref({
+          discovery: false,
+          matching: false,
+          submitting: false
+        });
+
+        const agentRoster = [
+          { id: 1, name: "Company Discovery Agent", desc: "Monitors 54+ pharmaceutical, biotech, CRO & pharma tech firms in India.", trigger: "Weekly cron" },
+          { id: 2, name: "Job Search Agent", desc: "Multi-source scanner querying official careers APIs and RSS feeds.", trigger: "Every 6 hours" },
+          { id: 3, name: "Job Extraction Agent", desc: "Parses descriptions into 7-pillar categories, experience and skills.", trigger: "Discovery cycle" },
+          { id: 4, name: "Job Verification Agent", desc: "Verifies URLs, detecting expired and closed positions.", trigger: "Every 12 hours" },
+          { id: 5, name: "Candidate Profile Agent", desc: "Analyzes uploaded resumes and tracks verified profile completeness.", trigger: "On upload" },
+          { id: 6, name: "Job Matching Agent", desc: "Calculates 6-factor score (0-100%) with hard eligibility guards.", trigger: "Every 6 hours" },
+          { id: 7, name: "ATS Optimization Agent", desc: "Extracts keywords and generates truthful coverage reports.", trigger: "On demand" },
+          { id: 8, name: "Resume Generation Agent", desc: "Compiles single-column ATS-compliant PDF & DOCX documents.", trigger: "On demand" },
+          { id: 9, name: "Application Automation Agent", desc: "Maps form fields, solves screening questions, enforces approval gate.", trigger: "On apply" },
+          { id: 10, name: "Application Tracking Agent", desc: "Tracks 12 lifecycle stages and enforces duplicate prevention.", trigger: "Continuous" },
+          { id: 11, name: "Notification Agent", desc: "Dispatches dashboard alerts for strong matches and interview invites.", trigger: "Event-based" }
+        ];
+
+        // Fetch Initial Data
+        const loadInitialData = async () => {
+          try {
+            // Load Candidate Profile
+            const candRes = await fetch('/api/v1/candidate/profile');
+            if (candRes.ok) candidate.value = await candRes.json();
+
+            // Load Jobs
+            const jobsRes = await fetch('/api/v1/jobs?limit=50');
+            if (jobsRes.ok) jobs.value = await jobsRes.json();
+
+            // Load Matches if candidate exists
+            if (candidate.value.id) {
+              const matchRes = await fetch(`/api/v1/matching/recommendations?candidate_id=${candidate.value.id}&limit=50`);
+              if (matchRes.ok) {
+                const matches = await matchRes.json();
+                const matchMap = {};
+                matches.forEach(m => { matchMap[m.job_id] = m.overall_score; });
+                jobs.value.forEach(j => {
+                  if (matchMap[j.id] !== undefined) j.match_score = matchMap[j.id];
+                });
+              }
+
+              // Load Applications & Stats
+              loadApplications();
+
+              // Load Generated Resumes
+              const resListRes = await fetch('/api/v1/resumes');
+              if (resListRes.ok) generatedResumes.value = await resListRes.json();
+            }
+          } catch (e) {
+            console.error("Failed to load initial dashboard data", e);
+          }
+        };
+
+        const loadApplications = async () => {
+          if (!candidate.value.id) return;
+          try {
+            const statsRes = await fetch(`/api/v1/applications/stats?candidate_id=${candidate.value.id}`);
+            if (statsRes.ok) stats.value = await statsRes.json();
+
+            const appRes = await fetch(`/api/v1/applications?candidate_id=${candidate.value.id}`);
+            if (appRes.ok) applications.value = await appRes.json();
+          } catch (e) {
+            console.error(e);
+          }
+        };
+
+        // Tab helper
+        const tabClass = (tab) => {
+          return currentTab.value === tab
+            ? 'border-emerald-600 text-emerald-600 font-bold'
+            : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300';
+        };
+
+        // Badges
+        const scoreBadgeClass = (score) => {
+          if (!score) return 'bg-slate-400';
+          if (score >= 75) return 'bg-emerald-600';
+          if (score >= 60) return 'bg-teal-600';
+          return 'bg-amber-500';
+        };
+
+        const statusBadgeClass = (status) => {
+          if (status === 'ACTIVE') return 'bg-emerald-100 text-emerald-800';
+          if (status === 'EXPIRED') return 'bg-red-100 text-red-800';
+          return 'bg-slate-100 text-slate-700';
+        };
+
+        const appStatusBadgeClass = (status) => {
+          if (status === 'Application confirmed') return 'bg-emerald-100 text-emerald-800';
+          if (status === 'Submitted') return 'bg-blue-100 text-blue-800';
+          if (status === 'Awaiting approval') return 'bg-amber-100 text-amber-800';
+          if (status === 'Interview scheduled') return 'bg-teal-100 text-teal-800 font-bold';
+          return 'bg-slate-100 text-slate-700';
+        };
+
+        const formatExp = (min, max) => {
+          if (min === 0.0 && !max) return 'Fresher Friendly';
+          if (min === 0.0 && max) return `0 - ${max} yrs (Fresher OK)`;
+          if (min && max) return `${min} - ${max} yrs`;
+          return `${min || 0}+ yrs`;
+        };
+
+        const formatDate = (dateStr) => {
+          if (!dateStr) return '';
+          return new Date(dateStr).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' });
+        };
+
+        // Computed
+        const activeJobsCount = computed(() => {
+          return jobs.value.filter(j => j.status === 'ACTIVE').length;
+        });
+
+        const strongMatchesCount = computed(() => {
+          return jobs.value.filter(j => (j.match_score || 0) >= 70).length;
+        });
+
+        const topMatches = computed(() => {
+          return [...jobs.value]
+            .sort((a, b) => (b.match_score || 0) - (a.match_score || 0))
+            .slice(0, 5);
+        });
+
+        const filteredJobs = computed(() => {
+          return jobs.value.filter(j => {
+            const matchSearch = !filters.value.search ||
+              j.title.toLowerCase().includes(filters.value.search.toLowerCase()) ||
+              (j.company_name || '').toLowerCase().includes(filters.value.search.toLowerCase()) ||
+              (j.description || '').toLowerCase().includes(filters.value.search.toLowerCase());
+            const matchCategory = !filters.value.category || j.category === filters.value.category;
+            const matchCity = !filters.value.city || (j.city || j.location || '').toLowerCase().includes(filters.value.city.toLowerCase());
+            return matchSearch && matchCategory && matchCity;
+          });
+        });
+
+        // Actions
+        const runJobDiscovery = async () => {
+          loading.value.discovery = true;
+          try {
+            await fetch('/api/v1/jobs/discover', { method: 'POST' });
+            await loadInitialData();
+          } catch (e) {
+            alert('Discovery cycle executed.');
+          } finally {
+            loading.value.discovery = false;
+          }
+        };
+
+        const recalculateMatches = async () => {
+          if (!candidate.value.id) return;
+          loading.value.matching = true;
+          try {
+            await fetch(`/api/v1/matching/evaluate-batch?candidate_id=${candidate.value.id}`, { method: 'POST' });
+            await loadInitialData();
+          } catch (e) {
+            console.error(e);
+          } finally {
+            loading.value.matching = false;
+          }
+        };
+
+        const generateResume = async (jobId) => {
+          if (!candidate.value.id) return;
+          try {
+            const res = await fetch('/api/v1/resumes/generate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                candidate_id: candidate.value.id,
+                job_id: jobId,
+                tailor_headline: true,
+                tailor_summary: true
+              })
+            });
+            if (res.ok) {
+              alert('ATS-Tailored Resume generated! Opening Candidate Profile & ATS Resume tab.');
+              currentTab.value = 'profile';
+              loadInitialData();
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        };
+
+        const openPrepareModal = async (job) => {
+          if (!candidate.value.id) return;
+          try {
+            const res = await fetch('/api/v1/applications/prepare', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                candidate_id: candidate.value.id,
+                job_id: job.id
+              })
+            });
+            if (res.ok) {
+              activePreview.value = await res.json();
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        };
+
+        const openApplicationPreview = async (appId) => {
+          try {
+            const res = await fetch(`/api/v1/applications/${appId}/preview`);
+            if (res.ok) {
+              activePreview.value = await res.json();
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        };
+
+        const quickApprove = async (appId) => {
+          try {
+            const res = await fetch(`/api/v1/applications/${appId}/approve`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ candidate_approved: true })
+            });
+            if (res.ok) {
+              loadApplications();
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        };
+
+        const approveModalApplication = async () => {
+          if (!activePreview.value?.application_id) return;
+          try {
+            const res = await fetch(`/api/v1/applications/${activePreview.value.application_id}/approve`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ candidate_approved: true })
+            });
+            if (res.ok) {
+              activePreview.value.candidate_approved = true;
+              loadApplications();
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        };
+
+        const executeSubmit = async (appId) => {
+          try {
+            const res = await fetch(`/api/v1/applications/${appId}/submit`, { method: 'POST' });
+            if (res.ok) {
+              const result = await res.json();
+              alert(`Application Confirmed!\nReference ID: ${result.submission_ref_id}`);
+              loadApplications();
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        };
+
+        const submitModalApplication = async () => {
+          if (!activePreview.value?.application_id) return;
+          await executeSubmit(activePreview.value.application_id);
+          activePreview.value = null;
+        };
+
+        const handleFileUpload = async (event) => {
+          const file = event.target.files[0];
+          if (!file || !candidate.value.id) return;
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('candidate_id', candidate.value.id);
+
+          try {
+            const res = await fetch('/api/v1/candidate/upload-resume', {
+              method: 'POST',
+              body: formData
+            });
+            if (res.ok) {
+              alert('Resume uploaded and parsed successfully!');
+              loadInitialData();
+            }
+          } catch (e) {
+            alert('Upload failed: ' + e);
+          }
+        };
+
+        onMounted(() => {
+          loadInitialData();
+        });
+
+        return {
+          currentTab,
+          tabClass,
+          jobs,
+          candidate,
+          stats,
+          applications,
+          generatedResumes,
+          activePreview,
+          filters,
+          loading,
+          agentRoster,
+          activeJobsCount,
+          strongMatchesCount,
+          topMatches,
+          filteredJobs,
+          scoreBadgeClass,
+          statusBadgeClass,
+          appStatusBadgeClass,
+          formatExp,
+          formatDate,
+          runJobDiscovery,
+          recalculateMatches,
+          generateResume,
+          openPrepareModal,
+          openApplicationPreview,
+          quickApprove,
+          approveModalApplication,
+          executeSubmit,
+          submitModalApplication,
+          handleFileUpload
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
