@@ -68,8 +68,23 @@ def dashboard():
     """Serves the interactive single-page application dashboard."""
     index_file = os.path.join(static_dir, "index.html")
     if os.path.exists(index_file):
-        return FileResponse(index_file)
+        return FileResponse(index_file, media_type="text/html")
     return {"message": "Dashboard UI static file not found"}
+
+
+@app.get("/jobs", include_in_schema=False)
+def redirect_jobs():
+    return RedirectResponse(url="/dashboard")
+
+
+@app.get("/applications", include_in_schema=False)
+def redirect_applications():
+    return RedirectResponse(url="/dashboard")
+
+
+@app.get("/profile", include_in_schema=False)
+def redirect_profile():
+    return RedirectResponse(url="/dashboard")
 
 
 @app.get("/", tags=["Root"])
@@ -80,6 +95,7 @@ def root():
         "docs_url": "/docs",
         "health_check": "/health"
     }
+
 
 
 

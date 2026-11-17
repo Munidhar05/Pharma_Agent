@@ -75,7 +75,7 @@ class FormMapperService:
             FormPreviewField(
                 field_name="phone",
                 field_label="Phone Number",
-                field_value=candidate.phone or "+91-9876543210",
+                field_value=candidate.phone or "+91-6303362149",
                 field_type="phone",
                 required=True,
                 source="candidate.phone",

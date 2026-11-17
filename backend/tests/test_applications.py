@@ -61,7 +61,7 @@ def test_db():
         user_id=user.id,
         headline="Associate Data Engineer | PySpark & Snowflake",
         summary="Data Engineer with expertise in PySpark, Databricks, Snowflake, and dbt.",
-        phone="+91-9876543210",
+        phone="+91-6303362149",
         linkedin_url="https://linkedin.com/in/rajesh-sharma-data",
         github_url="https://github.com/rajesh-data-eng",
         total_experience_years=0.5,
@@ -178,7 +178,7 @@ def test_form_mapper_service_fields_and_screening(test_db):
     assert fields_dict["full_name"] == "Rajesh Sharma"
     assert fields_dict["first_name"] == "Rajesh"
     assert fields_dict["email"] == "candidate.pharma@feuji.com"
-    assert fields_dict["phone"] == "+91-9876543210"
+    assert fields_dict["phone"] == "+91-6303362149"
     assert fields_dict["current_location"] == "Hyderabad"
     assert fields_dict["willing_to_relocate"] == "Yes"
     assert fields_dict["degree"] == "B.Tech"

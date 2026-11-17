@@ -32,7 +32,7 @@ def create_synthetic_pdf(file_path: str) -> None:
     """Helper to generate a realistic synthetic PDF resume for testing."""
     c = canvas.Canvas(file_path, pagesize=letter)
     c.drawString(100, 750, "Munidhar Kandula - Data Engineer")
-    c.drawString(100, 730, "Email: munidhar.kandula@example.com | Phone: +919876543210")
+    c.drawString(100, 730, "Email: munidhar.kandula@example.com | Phone: +916303362149")
     c.drawString(100, 715, "LinkedIn: https://linkedin.com/in/munidhar-kandula | GitHub: https://github.com/munidhar-k")
     c.drawString(100, 690, "Summary: Junior Data Engineer with 1 year experience in PySpark, Snowflake, Databricks, and dbt.")
     c.drawString(100, 670, "Education: B.Tech in Computer Science and Engineering, 2024, CGPA: 8.4")
@@ -63,7 +63,7 @@ def test_resume_parser_service_pdf():
         parsed = ResumeParserService.parse_resume(tmp_path)
 
         assert parsed["email"] == "munidhar.kandula@example.com"
-        assert parsed["phone"] is not None and "9876543210" in parsed["phone"]
+        assert parsed["phone"] is not None and "6303362149" in parsed["phone"]
         assert "linkedin.com/in/munidhar-kandula" in parsed["linkedin_url"]
         assert "github.com/munidhar-k" in parsed["github_url"]
 
@@ -238,6 +238,9 @@ def test_upload_resume_route_function(test_db):
         assert upload_res.filename == "synthetic_resume.pdf"
         assert upload_res.extracted_data_summary["skills_found"] > 0
         assert upload_res.verification_required is True
+        assert profile.user.full_name == "Munidhar Kandula"
+        assert profile.user.email == "munidhar.kandula@example.com"
+        assert "6303362149" in profile.phone
 
         resumes = list_resumes(profile=profile)
         assert len(resumes) >= 1

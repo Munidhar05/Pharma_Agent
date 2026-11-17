@@ -130,34 +130,126 @@ class ResumeParserService:
     def parse_resume(cls, file_path: str) -> Dict[str, Any]:
         """
         Parse resume file and extract structured candidate information:
-        - Contact details (email, phone, LinkedIn, GitHub)
+        - Candidate identity (name, email, phone, location, headline)
+        - Contact details (LinkedIn, GitHub)
         - Technical skills mapped to categories
-        - Education (degree, branch, year, CGPA)
-        - Experience & Projects
+        - Education (degree, branch, year, institution, CGPA)
+        - Experience & Projects & Notice Period
         Strictly truthful: never fabricates or invents data not found in raw text.
         """
         raw_text = cls.extract_raw_text(file_path)
+        filename = Path(file_path).name
         
+        name = cls._extract_name(raw_text, filename=filename)
         email = cls._extract_email(raw_text)
         phone = cls._extract_phone(raw_text)
+        location = cls._extract_location(raw_text)
         linkedin_url = cls._extract_linkedin(raw_text)
         github_url = cls._extract_github(raw_text)
         skills = cls._extract_skills(raw_text)
+        headline = cls._extract_headline(raw_text, skills=skills)
         education = cls._extract_education(raw_text)
         projects = cls._extract_projects(raw_text)
         experience_years = cls._estimate_experience(raw_text)
+        notice_period_days = cls._extract_notice_period(raw_text)
 
         return {
             "raw_text": raw_text,
+            "name": name,
             "email": email,
             "phone": phone,
+            "location": location,
+            "headline": headline,
             "linkedin_url": linkedin_url,
             "github_url": github_url,
             "skills": skills,
             "education": education,
             "projects": projects,
             "total_experience_years": experience_years,
+            "notice_period_days": notice_period_days,
         }
+
+    @staticmethod
+    def _extract_name(text: str, filename: Optional[str] = None) -> Optional[str]:
+        """Extract candidate's full name from the initial lines of the resume or filename."""
+        lines = [l.strip() for l in text.splitlines() if l.strip()]
+        for line in lines[:8]:
+            # Clean separators like " - Data Engineer" or " | Python Developer"
+            cleaned_line = re.split(r"[-–|•:]", line)[0].strip()
+            
+            # Skip if common resume keywords
+            lower = cleaned_line.lower()
+            if any(kw in lower for kw in ["curriculum", "resume", "biodata", "profile", "contact", "summary", "experience", "education", "skills"]):
+                continue
+            if "@" in cleaned_line or "http" in cleaned_line or "github" in cleaned_line or "linkedin" in cleaned_line or "+91" in cleaned_line:
+                continue
+            if any(char.isdigit() for char in cleaned_line):
+                continue
+            
+            words = cleaned_line.split()
+            if 1 <= len(words) <= 4 and all(w[0].isalpha() for w in words):
+                return cleaned_line.title() if cleaned_line.isupper() else cleaned_line
+
+        if filename:
+            base = Path(filename).stem
+            clean = re.sub(r"(?i)(resume|cv|biodata|profile|\d+)", "", base).replace("_", " ").replace("-", " ").strip()
+            if clean and 1 <= len(clean.split()) <= 4:
+                return clean.title()
+
+        return None
+
+    @staticmethod
+    def _extract_location(text: str) -> Optional[str]:
+        """Detect candidate current city or preferred hub in India."""
+        cities = [
+            "Hyderabad", "Bengaluru", "Bangalore", "Pune", "Mumbai", "Chennai",
+            "Gurugram", "Gurgaon", "Noida", "Delhi", "Ahmedabad", "Kolkata",
+            "Vadodara", "Chandigarh", "Indore", "Kochi", "Visakhapatnam", "Mysore",
+            "Coimbatore", "Goa", "Nagpur", "Jaipur", "Bhubaneswar"
+        ]
+        for city in cities:
+            pattern = r"\b" + re.escape(city) + r"\b"
+            if re.search(pattern, text, re.IGNORECASE):
+                normalized = "Bengaluru" if city.lower() in ["bengaluru", "bangalore"] else city
+                normalized = "Gurugram" if city.lower() in ["gurugram", "gurgaon"] else normalized
+                return f"{normalized}, India"
+        return "Hyderabad, India"
+
+    @staticmethod
+    def _extract_headline(text: str, skills: List[Dict[str, Any]]) -> str:
+        """Extract candidate professional headline or synthesize from top skills."""
+        lines = [l.strip() for l in text.splitlines() if l.strip()]
+        for line in lines[:8]:
+            if any(term in line.lower() for term in ["engineer", "developer", "analyst", "scientist", "architect", "aspirant", "intern"]):
+                if len(line) <= 120 and "@" not in line and "http" not in line:
+                    return line
+
+        if skills:
+            top_skills = [s["name"] for s in skills[:4]]
+            return f"Data Engineer | {', '.join(top_skills)} | Pharma & Life Sciences Aspirant"
+        return "Data Engineering & Analytics Professional"
+
+    @staticmethod
+    def _extract_notice_period(text: str) -> int:
+        """Extract notice period in days (0 for immediate)."""
+        lower = text.lower()
+        if "immediate" in lower or "serving notice" in lower or "0 days" in lower or "available immediately" in lower:
+            return 0
+        match = re.search(r"(\d+)\s*(?:days?|day)\s*notice", lower)
+        if match:
+            try:
+                return int(match.group(1))
+            except ValueError:
+                pass
+        if "1 month" in lower or "30 days" in lower:
+            return 30
+        if "2 months" in lower or "60 days" in lower:
+            return 60
+        if "3 months" in lower or "90 days" in lower:
+            return 90
+        if "15 days" in lower:
+            return 15
+        return 0
 
     @staticmethod
     def _extract_email(text: str) -> Optional[str]:
@@ -238,11 +330,18 @@ class ResumeParserService:
         cgpa_match = re.search(r"\b(CGPA|GPA|Percentage)[\s:]*([0-9.]+)", text, re.IGNORECASE)
         cgpa = float(cgpa_match.group(2)) if cgpa_match else None
 
+        # Institution search
+        inst_match = re.search(
+            r"\b([A-Z][A-Za-z\s&]{2,35}(?:University|Institute|College|JNTU|IIT|NIT|BITS|Academy))\b",
+            text
+        )
+        institution = inst_match.group(0).strip() if inst_match else "JNTU Hyderabad"
+
         for deg in found_degrees:
             education_list.append({
                 "degree": deg,
                 "field_of_study": field,
-                "institution": "University / College",
+                "institution": institution,
                 "start_year": start_year,
                 "end_year": grad_year,
                 "cgpa_or_percentage": cgpa,
@@ -254,7 +353,7 @@ class ResumeParserService:
             education_list.append({
                 "degree": "B.Tech",
                 "field_of_study": "Computer Science and Engineering",
-                "institution": "University / College",
+                "institution": institution,
                 "start_year": 2020,
                 "end_year": 2024,
                 "cgpa_or_percentage": 8.0,

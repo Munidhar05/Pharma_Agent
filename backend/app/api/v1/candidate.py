@@ -43,7 +43,7 @@ def get_current_candidate_profile(db: Session = Depends(get_db)) -> CandidatePro
         demo_user = db.query(User).filter(User.role == "candidate").first()
         if not demo_user:
             demo_user = User(
-                email="candidate.demo@pharmajobhunter.ai",
+                email="kandulamunidharreddy@gmail.com",
                 password_hash="placeholder",
                 full_name="Candidate Demo",
                 role="candidate"
@@ -184,58 +184,96 @@ def upload_resume(
     )
     db.add(resume_record)
 
-    # Update profile fields if discovered
-    if parsed_data.get("phone") and not profile.phone:
+    # Update user identity and contact fields if discovered in resume
+    if parsed_data.get("name"):
+        profile.user.full_name = parsed_data["name"]
+    if parsed_data.get("email"):
+        profile.user.email = parsed_data["email"]
+    if parsed_data.get("phone"):
         profile.phone = parsed_data["phone"]
-    if parsed_data.get("linkedin_url") and not profile.linkedin_url:
+    if parsed_data.get("location"):
+        profile.current_location = parsed_data["location"]
+    if parsed_data.get("headline"):
+        profile.headline = parsed_data["headline"]
+    if parsed_data.get("linkedin_url"):
         profile.linkedin_url = parsed_data["linkedin_url"]
-    if parsed_data.get("github_url") and not profile.github_url:
+    if parsed_data.get("github_url"):
         profile.github_url = parsed_data["github_url"]
     if parsed_data.get("total_experience_years") is not None:
         profile.total_experience_years = parsed_data["total_experience_years"]
+    if parsed_data.get("notice_period_days") is not None:
+        profile.notice_period_days = parsed_data["notice_period_days"]
 
-    # Ingest extracted skills if not already present
-    existing_skill_names = {s.name.lower() for s in profile.skills}
-    for sk in parsed_data.get("skills", []):
-        if sk["name"].lower() not in existing_skill_names:
+    # Ingest extracted skills from the resume (refreshing skill inventory)
+    if parsed_data.get("skills"):
+        db.query(CandidateSkill).filter(CandidateSkill.profile_id == profile.id).delete()
+        for sk in parsed_data["skills"]:
             db.add(CandidateSkill(
                 profile_id=profile.id,
                 name=sk["name"],
                 category=sk["category"],
-                proficiency=sk["proficiency"],
-                years_experience=sk["years_experience"],
+                proficiency=sk.get("proficiency", "Intermediate"),
+                years_experience=sk.get("years_experience", 1.0),
                 verified=True
             ))
 
-    # Ingest projects if not present
-    existing_project_titles = {p.title.lower() for p in profile.projects}
-    for pr in parsed_data.get("projects", []):
-        if pr["title"].lower() not in existing_project_titles:
+    # Ingest education from the resume
+    if parsed_data.get("education"):
+        db.query(CandidateEducation).filter(CandidateEducation.profile_id == profile.id).delete()
+        for edu in parsed_data["education"]:
+            db.add(CandidateEducation(
+                profile_id=profile.id,
+                degree=edu["degree"],
+                field_of_study=edu["field_of_study"],
+                institution=edu.get("institution", "University / College"),
+                start_year=edu.get("start_year"),
+                end_year=edu.get("end_year"),
+                cgpa_or_percentage=edu.get("cgpa_or_percentage"),
+                is_highest=edu.get("is_highest", True)
+            ))
+
+    # Ingest projects if discovered
+    if parsed_data.get("projects"):
+        db.query(CandidateProject).filter(CandidateProject.profile_id == profile.id).delete()
+        for pr in parsed_data["projects"]:
             db.add(CandidateProject(
                 profile_id=profile.id,
                 title=pr["title"],
-                role=pr["role"],
-                domain=pr["domain"],
-                description=pr["description"],
-                technologies=pr["technologies"],
-                highlights=pr["highlights"]
+                role=pr.get("role", "Data Engineer"),
+                domain=pr.get("domain", "Data Engineering"),
+                description=pr.get("description", ""),
+                technologies=pr.get("technologies", []),
+                highlights=pr.get("highlights", [])
             ))
 
     db.commit()
     db.refresh(profile)
 
+    # Recalculate job match scores with candidate's newly parsed resume profile
+    try:
+        from backend.app.agents.job_matching import JobMatchingAgent
+        matcher = JobMatchingAgent(db=db)
+        matcher.evaluate_all_active_jobs(candidate=profile)
+    except Exception:
+        pass
+
     agent = CandidateProfileAgent(profile)
     analysis = agent.analyze_profile()
 
     return ResumeUploadResponse(
-        message="Resume uploaded and candidate profile successfully extracted.",
+        message=f"Resume uploaded and parsed successfully. Profile updated for {profile.user.full_name}.",
         resume_id=resume_record.id,
         filename=file.filename,
         file_type=ext,
         extracted_data_summary={
+            "name": profile.user.full_name,
+            "email": profile.user.email,
+            "phone": profile.phone,
+            "location": profile.current_location,
+            "headline": profile.headline,
             "skills_found": len(parsed_data.get("skills", [])),
             "projects_found": len(parsed_data.get("projects", [])),
-            "phone": parsed_data.get("phone"),
+            "education_found": len(parsed_data.get("education", [])),
             "linkedin": parsed_data.get("linkedin_url"),
             "github": parsed_data.get("github_url"),
         },

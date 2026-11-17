@@ -144,10 +144,10 @@ def seed_database():
         print(f"   Successfully verified {len(TARGET_COMPANIES)} pharmaceutical & life science companies.")
 
         print("3. Checking & Seeding Demo Candidate Profile (from Section 8 requirements)...")
-        demo_user = db.query(User).filter(User.email == "candidate.demo@pharmajobhunter.ai").first()
+        demo_user = db.query(User).filter(User.email == "kandulamunidharreddy@gmail.com").first()
         if not demo_user:
             demo_user = User(
-                email="candidate.demo@pharmajobhunter.ai",
+                email="kandulamunidharreddy@gmail.com",
                 password_hash="$2b$12$eDxU1e7Q3wY4e5rT6y7u8OPasswordHashPlaceholderForDemo",
                 full_name="Munidhar Kandula",
                 role="candidate",
@@ -177,7 +177,7 @@ def seed_database():
                     "and automated data quality validation. Passionate about applying scalable data engineering "
                     "practices to pharmaceutical, healthcare, and clinical data systems."
                 ),
-                phone="+91-9876543210",
+                phone="+91-6303362149",
                 linkedin_url="https://linkedin.com/in/demo-candidate",
                 github_url="https://github.com/demo-candidate",
                 total_experience_years=0.5,  # Fresher / 0-1 year

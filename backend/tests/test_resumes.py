@@ -39,7 +39,7 @@ def create_candidate_and_job(db):
         user_id=user.id,
         headline="Junior Data Engineer",
         summary="Data Engineer with Snowflake, Databricks, PySpark, and dbt expertise.",
-        phone="+919876543210",
+        phone="+916303362149",
         current_location="Hyderabad",
         willing_to_relocate=True,
         verified_by_candidate=True
